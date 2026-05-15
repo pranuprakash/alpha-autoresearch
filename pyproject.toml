@@ -1,0 +1,35 @@
+[project]
+name = "alpha-autoresearch"
+version = "0.1.0"
+description = "Karpathy-style autonomous trading research — agents iterate on strategy code, backtest, keep/revert based on Sharpe ratio"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+dependencies = [
+    "openai>=1.30",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scipy>=1.11",
+    "yfinance>=0.2.30",
+    "python-dotenv>=1.0",
+    "rich>=13.0",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+polygon = ["polygon-api-client>=1.13"]
+fred = ["fredapi>=0.5"]
+
+[project.scripts]
+alpha-research = "alpha_autoresearch.main:cli"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["alpha_autoresearch*"]

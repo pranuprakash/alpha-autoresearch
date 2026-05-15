@@ -1,0 +1,31 @@
+# Data cache
+data/cache/
+
+# Environment
+.env
+
+# Artifacts (keep structure, ignore contents)
+artifacts/*.json
+artifacts/*.png
+artifacts/*.csv
+!artifacts/.gitkeep
+
+# Runs
+runs/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Logs
+*.log
+run.log
+
+# OS
+.DS_Store
+
+# Results are tracked (not ignored)
+# results.tsv

@@ -1,0 +1,47 @@
+# ── Alpha Autoresearch Configuration ──
+
+models:
+  # All agents use the local claude CLI — no API key needed (Max subscription).
+  # Override with anthropic/*, openai/*, google/* if you have API keys in .env.
+  solo_agent: "claude-cli/claude-sonnet-4-6"
+
+  # Swarm mode: specialist agents
+  researcher: "claude-cli/claude-sonnet-4-6"
+  strategist: "claude-cli/claude-sonnet-4-6"
+  optimizer: "claude-cli/claude-sonnet-4-6"
+  auditor: "claude-cli/claude-haiku-4-5"
+
+data:
+  # Default universe for prepare.py
+  universe: ["SPY", "QQQ", "AAPL", "NVDA", "MSFT", "AMZN", "GOOGL", "META", "TSLA"]
+  period_start: "2020-01-01"
+  period_end: "2025-12-31"
+  source: "yfinance"           # yfinance | polygon
+  cache_dir: "data/cache"
+
+backtest:
+  initial_capital: 100000.0
+  fee_model: "equity"          # equity | polymarket | kalshi
+  time_budget_sec: 300         # max backtest wall-clock (5 min, like Karpathy)
+  train_pct: 0.60
+  val_pct: 0.20
+  test_pct: 0.20
+  embargo_pct: 0.02
+
+risk:
+  min_oos_ratio: 0.50
+  max_plausible_sharpe: 6.0
+  min_trades: 30
+  significance_level: 0.05
+
+loop:
+  # Solo mode settings
+  max_iterations: null         # null = infinite (NEVER STOP, like Karpathy)
+  convergence_threshold: 0.01  # stop if Sharpe improves < 1%
+
+  # Swarm mode settings
+  karpathy_iterations: 5       # per optimization cycle
+  darwinian_boost: 1.05        # top-quartile agent weight multiplier
+  darwinian_decay: 0.95        # bottom-quartile agent weight multiplier
+  min_agent_weight: 0.3
+  max_agent_weight: 2.5
