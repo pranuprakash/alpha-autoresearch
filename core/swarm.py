@@ -199,10 +199,26 @@ class SwarmOrchestrator:
             tool_handlers=ToolHandlers(self.root).get_handlers(),
         )
 
+    def _load_research_brief_context(self) -> str:
+        """Load and format the research brief for injection into agent prompts."""
+        brief_path = self.root / "artifacts" / "research_brief.json"
+        if not brief_path.exists():
+            return ""
+        try:
+            from research.report import brief_to_context_string, load_brief
+            brief = load_brief(self.root)
+            return brief_to_context_string(brief)
+        except Exception:
+            return ""
+
     def _run_research_phase(self) -> Dict[str, Any]:
         """Layer 1: Run research agents (sequentially for simplicity, could be parallelized)."""
         logger.info("=== LAYER 1: RESEARCH ===")
         research_results = {}
+
+        research_brief_ctx = self._load_research_brief_context()
+        if research_brief_ctx:
+            logger.info("  Injecting pre-computed research brief into agent context")
 
         for specialty in self.RESEARCH_AGENTS:
             agent = self._build_research_agent(specialty)
@@ -213,8 +229,10 @@ class SwarmOrchestrator:
                 f"Read strategy.py and results.tsv first for context.\n"
                 f"Then read the data files in data/cache/ if available.\n"
                 f"Your Darwinian weight: {weight:.2f} (higher = more trusted)\n"
-                f"Provide your research brief as described in your instructions."
             )
+            if research_brief_ctx:
+                message += f"\nPRE-COMPUTED RESEARCH (use as starting point):\n{research_brief_ctx}\n"
+            message += "\nProvide your research brief as described in your instructions."
 
             result = agent.run(message)
             self.state.total_cost_usd += result.cost_usd

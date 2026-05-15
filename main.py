@@ -56,8 +56,12 @@ def cli():
               help="Max cycles for swarm mode (default: infinite)")
 @click.option("--run-tag", type=str, default=None,
               help="Git branch tag (default: auto-generated from date)")
+@click.option("--with-research", is_flag=True,
+              help="Run Market Research FSM first, then feed brief into the optimization loop")
+@click.option("--universe", type=str, default=None,
+              help="Comma-separated tickers to scan (used with --with-research)")
 @click.option("--verbose", is_flag=True, help="Debug logging")
-def run(mode, topic, max_iterations, max_cycles, run_tag, verbose):
+def run(mode, topic, max_iterations, max_cycles, run_tag, with_research, universe, verbose):
     """Start the autoresearch loop."""
     (PROJECT_ROOT / "artifacts").mkdir(parents=True, exist_ok=True)
     setup_logging(verbose)
@@ -66,12 +70,31 @@ def run(mode, topic, max_iterations, max_cycles, run_tag, verbose):
     signal.signal(signal.SIGINT, handle_shutdown)
     signal.signal(signal.SIGTERM, handle_shutdown)
 
-    logger.info(f"Alpha Autoresearch v0.1.0")
+    logger.info(f"Alpha Autoresearch v0.2.0")
     logger.info(f"Mode: {mode} | Topic: {topic}")
     logger.info(f"Project root: {PROJECT_ROOT}")
 
     from dotenv import load_dotenv
     load_dotenv(PROJECT_ROOT / ".env")
+
+    # Optional: run Market Research FSM first to generate a research brief
+    if with_research:
+        from research.fsm import MarketResearchFSM
+        from research.report import format_alpha_report
+        uni = [s.strip() for s in universe.split(",")] if universe else None
+        logger.info("Running Market Research FSM...")
+        fsm = MarketResearchFSM(
+            project_root=PROJECT_ROOT,
+            universe=uni,
+            topic=topic,
+        )
+        report = fsm.run()
+        print(format_alpha_report(report))
+        # Update topic with the best signal if found
+        if report.get("alpha_signals"):
+            best = max(report["alpha_signals"], key=lambda s: s.get("confidence", 0))
+            topic = f"{topic} — focus: {best.get('signal_type')} {best.get('direction')} on {best.get('ticker')}"
+            logger.info(f"Updated topic from research: {topic}")
 
     import yaml
     config_path = PROJECT_ROOT / "config.yaml"
@@ -102,6 +125,56 @@ def run(mode, topic, max_iterations, max_cycles, run_tag, verbose):
             topic=topic,
         )
         swarm.run(run_tag=run_tag, max_cycles=max_cycles)
+
+
+@cli.command()
+@click.option("--universe", type=str, default=None,
+              help="Comma-separated tickers (e.g. 'SPY,QQQ,NVDA'). Default: from config.yaml")
+@click.option("--topic", type=str, default="equity alpha discovery",
+              help="Research topic / hypothesis to investigate")
+@click.option("--resume", type=str, default=None,
+              help="Resume a previous FSM run by run_id")
+@click.option("--dry-run", is_flag=True,
+              help="Run FSM without LLM calls (uses quantitative signals only, good for testing)")
+@click.option("--verbose", is_flag=True, help="Debug logging")
+def research(universe, topic, resume, dry_run, verbose):
+    """Run the Market Research FSM — autonomous alpha discovery pipeline.
+
+    Stages: UNIVERSE_SCAN → MACRO_REGIME → TECHNICAL_SCAN → SENTIMENT →
+            OPTIONS_FLOW → SIGNAL_SYNTHESIS → STRATEGY_CODEGEN →
+            BACKTEST_VALIDATION → ALPHA_REPORT → COMPLETE
+
+    Outputs artifacts/research_brief.json consumed by the optimization loop.
+    """
+    (PROJECT_ROOT / "artifacts").mkdir(parents=True, exist_ok=True)
+    setup_logging(verbose)
+    logger = logging.getLogger("Research")
+
+    symbols = [s.strip() for s in universe.split(",")] if universe else None
+
+    from research.fsm import MarketResearchFSM
+    from research.report import format_alpha_report
+
+    fsm = MarketResearchFSM(
+        project_root=PROJECT_ROOT,
+        universe=symbols,
+        topic=topic,
+        resume_run_id=resume,
+        dry_run=dry_run,
+    )
+
+    logger.info(f"Starting Market Research FSM (run_id={fsm.ctx.run_id})")
+    if dry_run:
+        logger.info("DRY RUN — LLM calls are skipped, using quantitative signals only")
+
+    report = fsm.run()
+    print(format_alpha_report(report))
+
+    if report.get("validated_count", 0) > 0:
+        logger.info(
+            f"Run: python main.py run --mode solo --with-research to start optimization "
+            f"using this research brief."
+        )
 
 
 @cli.command()
