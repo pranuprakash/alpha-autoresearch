@@ -29,6 +29,27 @@ logger = logging.getLogger("ClaudeCli")
 
 CLAUDE_CLI = shutil.which("claude") or "/Users/pranuprakash/.local/bin/claude"
 
+
+def verify_claude_cli() -> None:
+    """Raise RuntimeError early if the claude CLI is missing or broken."""
+    import os
+    if not os.path.isfile(CLAUDE_CLI):
+        raise RuntimeError(
+            f"claude CLI not found at {CLAUDE_CLI}. "
+            "Install Claude Code: https://claude.ai/code"
+        )
+    try:
+        proc = subprocess.run(
+            [CLAUDE_CLI, "--version"],
+            capture_output=True, text=True, timeout=10
+        )
+        if proc.returncode != 0:
+            raise RuntimeError(f"claude CLI --version failed: {proc.stderr.strip()[:200]}")
+    except FileNotFoundError:
+        raise RuntimeError(f"claude CLI not executable at {CLAUDE_CLI}")
+    except subprocess.TimeoutExpired:
+        raise RuntimeError("claude CLI --version timed out")
+
 # XML tags used to delimit tool calls and results in the prompt
 TOOL_CALL_TAG = "tool_call"
 TOOL_RESULT_TAG = "tool_result"

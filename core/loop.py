@@ -88,7 +88,7 @@ class SoloLoop:
 
     def _build_agent(self) -> Agent:
         """Create the solo agent with tools and system prompt."""
-        model = self.config.get("models", {}).get("solo_agent", "anthropic/claude-sonnet-4-20250514")
+        model = self.config.get("models", {}).get("solo_agent", "claude-cli/claude-sonnet-4-6")
 
         program_path = self.root / "program.md"
         if program_path.exists():
@@ -254,6 +254,9 @@ class SoloLoop:
         """
         from dotenv import load_dotenv
         load_dotenv(self.root / ".env")
+
+        from core.claude_cli import verify_claude_cli
+        verify_claude_cli()
 
         if git_available(self.root):
             tag = run_tag or datetime.now().strftime("%b%d").lower()

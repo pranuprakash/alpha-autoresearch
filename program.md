@@ -71,3 +71,22 @@ LOOP FOREVER:
 - Don't be afraid of bold changes — try different strategy paradigms
 - Volume data is available — use it
 - Look for regime-aware strategies that adapt to volatility
+
+## Strategy Ideas to Explore
+
+Proven signal types (try in this priority order):
+1. **Momentum crossover** — fast EMA vs slow SMA, confirmed by volume
+2. **RSI mean-reversion** — fade extremes (RSI < 30 → long, > 70 → short) with regime filter
+3. **Volatility breakout** — price breaks 20-day channel with >1.5× avg volume
+4. **Adaptive dual-momentum** — compare 1m and 3m momentum, go with the stronger signal
+5. **Volume-weighted price reversal** — VWAP divergence + mean-reversion
+
+Regime filtering (always useful):
+- ADX > 25: trending regime → prefer momentum strategies
+- ADX < 20: ranging → prefer mean-reversion
+- Apply as a position-size filter or signal gate, not a hard switch
+
+Anti-patterns (these have consistently failed in backtests):
+- Using close price without .shift(1) before signaling
+- More than 5 conditions in a single signal rule
+- Lookback windows > 200 on daily data

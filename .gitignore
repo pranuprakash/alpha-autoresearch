@@ -1,31 +1,39 @@
-# Data cache
+# Data cache (can be large — regenerate with `python main.py prepare`)
 data/cache/
 
-# Environment
+# Environment — NEVER commit real keys
 .env
 
-# Artifacts (keep structure, ignore contents)
+# Artifacts: keep the directory, ignore generated content
 artifacts/*.json
+artifacts/*.log
 artifacts/*.png
 artifacts/*.csv
 !artifacts/.gitkeep
 
-# Runs
+# Experiment runs
 runs/
 
 # Python
 __pycache__/
 *.pyc
+*.pyo
 *.egg-info/
 dist/
 build/
+.venv/
+venv/
 
 # Logs
 *.log
 run.log
 
+# pytest
+.pytest_cache/
+
 # OS
 .DS_Store
+Thumbs.db
 
-# Results are tracked (not ignored)
+# Results are intentionally tracked (experiment history)
 # results.tsv

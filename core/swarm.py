@@ -149,7 +149,7 @@ class SwarmOrchestrator:
         return f"You are the {prompt_name} agent in a trading research swarm."
 
     def _build_research_agent(self, specialty: str) -> Agent:
-        model = self.config.get("models", {}).get("researcher", "google/gemini-2.5-flash")
+        model = self.config.get("models", {}).get("researcher", "claude-cli/claude-sonnet-4-6")
         prompt = self._load_prompt("researcher")
         prompt += f"\n\nYour specialty: {specialty.upper()} analysis."
         prompt += f"\nYour current Darwinian weight: {self.state.agent_weights.get(specialty, AgentWeight(specialty)).weight:.2f}"
@@ -164,7 +164,7 @@ class SwarmOrchestrator:
         )
 
     def _build_strategist(self) -> Agent:
-        model = self.config.get("models", {}).get("strategist", "anthropic/claude-sonnet-4-20250514")
+        model = self.config.get("models", {}).get("strategist", "claude-cli/claude-opus-4-7")
         prompt = self._load_prompt("strategist")
         tools = ToolHandlers(self.root)
         return Agent(
@@ -176,7 +176,7 @@ class SwarmOrchestrator:
         )
 
     def _build_optimizer(self) -> Agent:
-        model = self.config.get("models", {}).get("optimizer", "anthropic/claude-sonnet-4-20250514")
+        model = self.config.get("models", {}).get("optimizer", "claude-cli/claude-sonnet-4-6")
         prompt = self._load_prompt("optimizer")
         tools = ToolHandlers(self.root)
         return Agent(
@@ -188,7 +188,7 @@ class SwarmOrchestrator:
         )
 
     def _build_auditor(self) -> Agent:
-        model = self.config.get("models", {}).get("auditor", "openai/gpt-4o")
+        model = self.config.get("models", {}).get("auditor", "claude-cli/claude-haiku-4-5")
         prompt = self._load_prompt("auditor")
         tools = ToolHandlers(self.root)
         return Agent(
@@ -495,6 +495,9 @@ class SwarmOrchestrator:
         """
         from dotenv import load_dotenv
         load_dotenv(self.root / ".env")
+
+        from core.claude_cli import verify_claude_cli
+        verify_claude_cli()
 
         if git_available(self.root):
             tag = run_tag or datetime.now().strftime("%b%d").lower()

@@ -20,6 +20,11 @@ import click
 
 PROJECT_ROOT = Path(__file__).parent.resolve()
 
+# When invoked as CLI entry point (alpha-research), alpha_autoresearch/ is not in sys.path.
+# This ensures submodule imports (core.loop, research.fsm, etc.) resolve correctly.
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 
 def setup_logging(verbose: bool = False):
     level = logging.DEBUG if verbose else logging.INFO

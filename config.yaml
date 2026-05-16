@@ -2,14 +2,14 @@
 
 models:
   # All agents use the local claude CLI — no API key needed (Max subscription).
-  # Override with anthropic/*, openai/*, google/* if you have API keys in .env.
-  solo_agent: "claude-cli/claude-sonnet-4-6"
+  # claude-cli/* prefix routes to the local `claude` binary (Pranu's Max plan).
+  solo_agent: "claude-cli/claude-sonnet-4-6"   # solo loop — fast iteration
 
   # Swarm mode: specialist agents
-  researcher: "claude-cli/claude-sonnet-4-6"
-  strategist: "claude-cli/claude-sonnet-4-6"
-  optimizer: "claude-cli/claude-sonnet-4-6"
-  auditor: "claude-cli/claude-haiku-4-5"
+  researcher: "claude-cli/claude-sonnet-4-6"   # data analysis — fast, capable
+  strategist: "claude-cli/claude-opus-4-7"     # strategy design — needs deep reasoning
+  optimizer:  "claude-cli/claude-sonnet-4-6"   # parameter tuning — fast iteration
+  auditor:    "claude-cli/claude-haiku-4-5"    # risk checks — lightweight is fine
 
 data:
   # Default universe for prepare.py
